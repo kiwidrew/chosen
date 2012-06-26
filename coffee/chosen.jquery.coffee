@@ -40,7 +40,10 @@ class Chosen extends AbstractChosen
     if @is_multiple
       container_div.html '<ul class="chzn-choices"><li class="search-field"><input type="text" value="' + @default_text + '" class="default" autocomplete="off" style="width:25px;" /></li></ul><div class="chzn-drop" style="left:-9000px;"><ul class="chzn-results"></ul></div>'
     else
-      container_div.html '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a><div class="chzn-drop" style="left:-9000px;"><div class="chzn-search"><input type="text" autocomplete="off" /></div><ul class="chzn-results"></ul></div>'
+      search_html = '<div class="chzn-search"><input type="text" autocomplete="off" /></div>'
+      if @disable_search
+        search_html = ''
+      container_div.html '<a href="javascript:void(0)" class="chzn-single chzn-default"><span>' + @default_text + '</span><div><b></b></div></a><div class="chzn-drop" style="left:-9000px;">' + search_html + '<ul class="chzn-results"></ul></div>'
 
     @form_field_jq.hide().after container_div
     @container = ($ '#' + @container_id)
@@ -83,9 +86,10 @@ class Chosen extends AbstractChosen
 
     @form_field_jq.bind "liszt:updated", (evt) => this.results_update_field(evt)
 
-    @search_field.blur (evt) => this.input_blur(evt)
-    @search_field.keyup (evt) => this.keyup_checker(evt)
-    @search_field.keydown (evt) => this.keydown_checker(evt)
+    if not @disable_search
+      @search_field.blur (evt) => this.input_blur(evt)
+      @search_field.keyup (evt) => this.keyup_checker(evt)
+      @search_field.keydown (evt) => this.keydown_checker(evt)
 
     if @is_multiple
       @search_choices.click (evt) => this.choices_click(evt)
@@ -94,6 +98,7 @@ class Chosen extends AbstractChosen
       @container.click (evt) => evt.preventDefault() # gobble click of anchor
 
   search_field_disabled: ->
+    return if @disable_search
     @is_disabled = @form_field_jq[0].disabled
     if(@is_disabled)
       @container.addClass 'chzn-disabled'
